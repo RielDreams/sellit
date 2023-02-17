@@ -1,4 +1,6 @@
 <script>
+	import { Button, Modal } from 'flowbite-svelte';
+  	import { writable } from 'svelte/store';
 	import {
 		Label,
 		Fileupload,
@@ -6,6 +8,8 @@
 		Input,
 		Checkbox,
 	} from 'flowbite-svelte';
+	import { supabase } from '../../lib/utils/supabase';
+	const items = writable([])
 	let sizesModal = true;
 	let size;
 	let textareaprops = {
@@ -23,7 +27,6 @@
 	let fileuploadprops2 = {
 		id: 'user_avatar2',
 	};
-	import { Button, Modal } from 'flowbite-svelte';
 	let placement;
 	let open = false;
 
@@ -31,6 +34,21 @@
 		placement = ev.target.textContent; // text in the button
 		open = !open;
 	};
+	let showTitle;
+	let showBrand
+	let showAsking_price
+	let showListed
+	let showDescription
+
+
+	const addItem = async (title, brand, asking_price, listed) => {
+		const { data: { user } } = await supabase.auth.getUser()
+		const { data, error } = await supabase.from('items').insert([{title: showTitle, user_id: user.id, brand: showBrand, asking_price: showAsking_price, description: showDescription},])
+    	if(error) {
+        	return console.error(error);
+    	}
+};
+
 </script>
 
 <Button
@@ -43,6 +61,7 @@
 <form
 	action="?/add"
 	method="POST"
+	on:submit|preventDefault={addItem}
 >
 	<Modal
 		title="Add Item"
@@ -60,6 +79,7 @@
 			placeholder="Item Name"
 			for="title"
 			name="title"
+			bind:value={showTitle}
 		/>
 		<Label
 			for="default-input"
@@ -70,6 +90,7 @@
 			placeholder="..."
 			for="brand"
 			name="brand"
+			bind:value={showBrand}
 		/>
 		<Label
 			for="default-input"
@@ -81,16 +102,18 @@
 			for="asking_price"
 			name="asking_price"
 			type="number"
+			bind:value={showAsking_price}
 		/>
 		<Textarea
 			{...textareaprops}
 			for="description"
+			bind:value={showDescription}
 		/>
 		<svelte:fragment slot="footer">
-			<input
+			<Button><input
 				type="submit"
 				value="Submit"
-			/>
+			/></Button>
 			<Button color="alternative">Cancel</Button>
 		</svelte:fragment>
 		<Fileupload {...fileuploadprops} />
